@@ -1,0 +1,76 @@
+version: '3.9'
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: VfMuMOniTgpF
+      MINIO_ROOT_PASSWORD: 98n6!J4@B~<A|Z`f
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    networks:
+      - app_network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: cwRI82uX5HyT   # RabbitMQ username
+      RABBITMQ_DEFAULT_PASS: 9j4u6PluofN5   # RabbitMQ password
+    networks:
+      - app_network
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
+    environment:
+      QDRANT_API_KEY: WekH8tQ6T_KgGfl628HX_81irPv9faE3cNXgvGlyAcI
+      QDRANT_STORAGE_PATH: /qdrant/storage
+      QDRANT_LOG_LEVEL: info
+    ports:
+      - "127.0.0.1:6333:6333"  # Expose port only to localhost for security
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: oaxqnvCBwWNw
+      POSTGRES_PASSWORD: e!;pzI!ka867KTTo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    command: ["redis-server", "--protected-mode", "yes"]
+    ports:
+      - "127.0.0.1:6379:6379"  # Bind to localhost for security
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
+volumes:
+  minio_data:
+  qdrant_storage:
+  postgres_data:
+  redis_data:
+
+networks:
+  app_network:
