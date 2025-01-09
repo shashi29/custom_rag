@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 class ProcessingStatus(Enum):
     """Enhanced enum for processing status"""
+    QUEUED = "QUEUED"
     STARTED = "STARTED"
     PROCESSING = "PROCESSING"
     SUCCESS = "SUCCESS"
@@ -120,7 +121,7 @@ class RedisClient:
     def __init__(self, host: str, port: int, db: int):
         self.client = redis.Redis(host=host, port=port, db=db)
     
-    def get_latest_status(self, service_name: str, cid: str) -> Tuple[Optional[str], Optional[str]]:
+    def get_latest_status(self, cid: str) -> Tuple[Optional[str], Optional[str]]:
         """Get latest processing status for a CID"""
         key = f"status:{cid}"
         status_data = self.client.hgetall(key)
@@ -148,8 +149,6 @@ class ProcessingService:
                                           self.config.input_queue, 
                                           self.config.rabbitmq_user, 
                                           self.config.rabbitmq_pass)
-        # self.s3_client = S3Client(self.config.s3_access_key, 
-        #                           self.config.s3_secret_key)
         
         self.minio_client = MinioClient(
             endpoint=self.config.minio_endpoint,
@@ -162,12 +161,9 @@ class ProcessingService:
             self.config.redis_port,
             self.config.redis_db
         )
-        
-        # Create temp directory if it doesn't exist
+
         os.makedirs(self.config.temp_dir, exist_ok=True)
         
-        #Qdrant model
-        #self.model = SentenceTransformer(self.config.embedding_model)
         self.qdrant_client = QdrantClient(url=self.config.qdrant_url)
         self.embedding_service = EmbeddingServiceClient()
 
